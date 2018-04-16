@@ -74,101 +74,22 @@ app.get('/', function(req,res) {
     if(err) {
       console.log(err);
     } else {
-    res.render('index', {
-      title:'Articles',
-      articles: articles
-    });
+      res.render('index', {
+        title:'Articles',
+        articles: articles
+      });
     }
   });
 });
 
-//Renders the add_article template when visit this URL
-app.get('/articles/add', function(req,res) {
-  res.render('add_article', {
-    title:'Add Article'
-  });
-});
+//Route files
+let articles = require('./routes/articles');
+let users = require('./routes/users');
+//Any route for '/articles' will go to the /routes/articles folder
+app.use('/articles',articles);
 
-//Get single articles
-app.get('/article/:id',function(req,res) {
-  Article.findById(req.params.id, function(err, article) {
-    res.render('article', {
-      article:article
-    });
-  });
-});
-
-//Posts the article to the DB from the /articles/add route
-app.post('/articles/add', function(req,res) {
-  req.checkBody('title', 'Title is required').notEmpty();
-  req.checkBody('author', 'Author is required').notEmpty();
-  req.checkBody('body', 'Body is required').notEmpty();
-
-  //Get Errors, if exists
-  let errors = req.validationErrors();
-  if(errors) {
-    res.render('add_article', {
-      title:'Add Article',
-      errors:errors
-    });
-  } else {
-
-    let article = new Article();
-    article.title = req.body.title;
-    article.author = req.body.author;
-    article.body = req.body.body;
-
-    article.save(function(err){
-      if(err) {
-        console.log(err);
-        return;
-      }
-      req.flash('success','Article Added');
-      res.redirect('/');
-    });
-  }
-});
-
-//Update submission
-app.post('/articles/edit/:id', function(req,res) {
-  let article = {}
-  article.title = req.body.title;
-  article.author = req.body.author;
-  article.body = req.body.body;
-
-  let query = {_id:req.params.id};
-
-  Article.update(query, article, function(err){
-    if(err) {
-      console.log(err);
-      return;
-    }
-    req.flash('success', 'Article updated');
-    res.redirect('/');
-  });
-});
-
-app.delete('/article/:id', function(req,res) {
-  let query = {_id:req.params.id}
-
-  Article.remove(query, function(err) {
-    if(err) {
-      console.log(err);
-    }
-
-    res.send('Success');
-  });
-});
-
-//Load edit form
-app.get('/article/edit/:id',function(req,res) {
-  Article.findById(req.params.id, function(err, article) {
-    res.render('edit_article', {
-      title:"Edit Article",
-      article:article
-    });
-  });
-});
+//Any route for '/users' will go to the /routes/users folder
+app.use('/users', users);
 
 app.listen(3000, function() {
   console.log("Server started on 3000");
