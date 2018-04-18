@@ -6,9 +6,11 @@ const bodyParser = require('body-parser');
 const expressValidator = require('express-validator');
 const flash = require('connect-flash');
 const session = require('express-session');
+const passport = require('passport');
+const config = require('./config/database');
 
 //connect to DB
-mongoose.connect('mongodb://localhost/nodekb');
+mongoose.connect(config.database);
 let db = mongoose.connection;
 
 // Check for db errors
@@ -62,6 +64,19 @@ app.use(expressValidator({
     };
   }
 }));
+
+// Passport config
+require('./config/passport')(passport);
+// Passport middleware
+app.use(passport.initialize());
+app.use(passport.session());
+
+//sets a global object of user if there is a user logged in
+//if no user is logged in the global user object will be null
+app.get('*', function(req,res,next) {
+  res.locals.user = req.user || null;
+  next();
+});
 
 //Load view engine
 app.set('views', path.join(__dirname, 'views'));
